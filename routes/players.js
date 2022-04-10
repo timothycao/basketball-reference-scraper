@@ -6,7 +6,7 @@ const router = express.Router();
 const baseUrl = 'https://www.basketball-reference.com/players';
 
 router.get('/', async (req, res) => {
-    const { firstName, lastName, playoffs, ...stats } = req.query;
+    const { firstName, lastName, playoffs, season, ...stats } = req.query;
 
     const firstNameAbbrev = firstName.toLowerCase().slice(0, 2);
     const lastNameAbbrev = lastName.toLowerCase().slice(0, 5);
@@ -16,18 +16,13 @@ router.get('/', async (req, res) => {
     const html = response.data;
 
     const $ = cheerio.load(html);
-    const tableRows = playoffs ? $('#div_playoffs_per_game table tbody tr') : $('#div_per_game table tbody tr');
-    
-    const seasons = [];
 
-    tableRows.each(function () {
-        const tableRow = $(this);
+    const otherStats = [ 'age', 'team_id', 'lg_id', 'pos', 'g', 'gs', 'fg_pct', 'fg3_pct', 'fg2_pct', 'efg_pct', 'ft_pct' ]; // not per game stats
 
-        if (!tableRow.attr('id')) return;
+    if (season) {
+        const seasonStats = { season: season };
+        const tableRow = playoffs ? $(`#div_playoffs_per_game table tbody tr[id*=${season}]`) : $(`#div_per_game table tbody tr[id*=${season}]`);
 
-        const seasonStats = { season: tableRow.attr('id').slice(-4) };
-        const otherStats = [ 'age', 'team_id', 'lg_id', 'pos', 'g', 'gs', 'fg_pct', 'fg3_pct', 'fg2_pct', 'efg_pct', 'ft_pct' ]; // not per game stats
-        
         for (let stat in stats) {
             if (otherStats.includes(stat)) {
                 seasonStats[stat] = tableRow.find(`[data-stat=${stat}]`).text();
@@ -36,10 +31,31 @@ router.get('/', async (req, res) => {
             }
         }
 
-        seasons.push(seasonStats);
-    });
+        res.json(seasonStats);
+    } else {
+        const seasons = [];
+        const tableRows = playoffs ? $('#div_playoffs_per_game table tbody tr') : $('#div_per_game table tbody tr');
 
-    res.json(seasons);
+        tableRows.each(function () {
+            const tableRow = $(this);
+
+            if (!tableRow.attr('id')) return;
+
+            const seasonStats = { season: tableRow.attr('id').slice(-4) };
+
+            for (let stat in stats) {
+                if (otherStats.includes(stat)) {
+                    seasonStats[stat] = tableRow.find(`[data-stat=${stat}]`).text();
+                } else {
+                    seasonStats[stat] = tableRow.find(`[data-stat=${stat}_per_g]`).text();
+                }
+            }
+
+            seasons.push(seasonStats);
+        });
+
+        res.json(seasons);
+    }
 });
 
 module.exports = router;
