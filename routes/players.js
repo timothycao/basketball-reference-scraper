@@ -8,54 +8,77 @@ const baseUrl = 'https://www.basketball-reference.com/players';
 router.get('/', async (req, res) => {
     const { firstName, lastName, playoffs, season, ...stats } = req.query;
 
+    const url = getUrl(firstName, lastName, baseUrl);
+
+    const html = await getHtml(url);
+
+    const $ = cheerio.load(html);
+
+    const requestedStats = getRequestedStats(stats, $, playoffs, season);
+
+    res.json(requestedStats);
+});
+
+function getUrl (firstName, lastName, baseUrl) {
     const firstNameAbbrev = firstName.toLowerCase().slice(0, 2);
     const lastNameAbbrev = lastName.toLowerCase().slice(0, 5);
     const initial = lastName.toLowerCase()[0];
 
-    const response = await axios.get(`${baseUrl}/${initial}/${lastNameAbbrev}${firstNameAbbrev}01.html`);
-    const html = response.data;
+    return `${baseUrl}/${initial}/${lastNameAbbrev}${firstNameAbbrev}01.html`;
+}
 
-    const $ = cheerio.load(html);
+async function getHtml (url) {
+    const response = await axios.get(url);
+    
+    return response.data;
+}
 
-    const otherStats = [ 'age', 'team_id', 'lg_id', 'pos', 'g', 'gs', 'fg_pct', 'fg3_pct', 'fg2_pct', 'efg_pct', 'ft_pct' ]; // not per game stats
+function getTableRow (callback, isPlayoffs, season) {
+    const playoffs = isPlayoffs ? '_playoffs' : '';
 
-    if (season) {
-        const seasonStats = { season: season };
-        const tableRow = playoffs ? $(`#div_playoffs_per_game table tbody tr[id*=${season}]`) : $(`#div_per_game table tbody tr[id*=${season}]`);
+    return callback(`#div${playoffs}_per_game table tbody tr[id*=${season}]`);
+}
 
-        for (let stat in stats) {
-            if (otherStats.includes(stat)) {
-                seasonStats[stat] = tableRow.find(`[data-stat=${stat}]`).text();
-            } else {
-                seasonStats[stat] = tableRow.find(`[data-stat=${stat}_per_g]`).text();
-            }
-        }
+function getTableRows (callback, isPlayoffs) {
+    const playoffs = isPlayoffs ? '_playoffs' : '';
 
-        res.json(seasonStats);
-    } else {
-        const seasons = [];
-        const tableRows = playoffs ? $('#div_playoffs_per_game table tbody tr') : $('#div_per_game table tbody tr');
+    return callback(`#div${playoffs}_per_game table tbody tr`);
+}
 
-        tableRows.each(function () {
-            const tableRow = $(this);
+function getTableRowStat (tableRow, stat) {
+    return tableRow.find(`[data-stat=${stat}]`).text();
+}
 
-            if (!tableRow.attr('id')) return;
+function getSeasonStats (statsObject, callback, isPlayoffs, season, givenTableRow) {
+    const tableRow = givenTableRow || getTableRow(callback, isPlayoffs, season);
+    const seasonStats = { season: getTableRowStat(tableRow, 'season') };
 
-            const seasonStats = { season: tableRow.attr('id').slice(-4) };
-
-            for (let stat in stats) {
-                if (otherStats.includes(stat)) {
-                    seasonStats[stat] = tableRow.find(`[data-stat=${stat}]`).text();
-                } else {
-                    seasonStats[stat] = tableRow.find(`[data-stat=${stat}_per_g]`).text();
-                }
-            }
-
-            seasons.push(seasonStats);
-        });
-
-        res.json(seasons);
+    for (let stat in statsObject) {
+        seasonStats[stat] = getTableRowStat(tableRow, stat);
     }
-});
+
+    return seasonStats;
+}
+
+function getCareerStats (statsObject, callback, isPlayoffs) {
+    const tableRows = getTableRows(callback, isPlayoffs);
+    const careerStats = [];
+
+    tableRows.each(function () {
+        const tableRow = callback(this);
+        if (!tableRow.attr('id')) return;
+
+        const seasonStats = getSeasonStats(statsObject, undefined, undefined, undefined, tableRow);
+
+        careerStats.push(seasonStats);
+    })
+
+    return careerStats;
+}
+
+function getRequestedStats (statsObject, callback, isPlayoffs, season) {
+    if (season) return getSeasonStats(statsObject, callback, isPlayoffs, season);
+    else return getCareerStats(statsObject, callback, isPlayoffs);
+}
 
 module.exports = router;
