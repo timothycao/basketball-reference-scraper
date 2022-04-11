@@ -1,4 +1,5 @@
 const axios = require('axios');
+const cheerio = require('cheerio');
 
 function getUrl (firstName, lastName, baseUrl) {
     const firstNameAbbrev = firstName.toLowerCase().slice(0, 2);
@@ -12,6 +13,13 @@ async function getHtml (url) {
     const response = await axios.get(url);
     
     return response.data;
+}
+
+async function getCheerioAPI (firstName, lastName, baseUrl) {
+    const url = getUrl(firstName, lastName, baseUrl);
+    const html = await getHtml(url);
+
+    return cheerio.load(html);
 }
 
 function getTableRow (callback, category, isPlayoffs, season) {
@@ -57,9 +65,11 @@ function getCareerStats (statsObject, callback, category, isPlayoffs) {
     return careerStats;
 }
 
-function getRequestedStats (statsObject, callback, category, isPlayoffs, season) {
-    if (season) return getSeasonStats(statsObject, callback, category, isPlayoffs, season);
-    else return getCareerStats(statsObject, callback, category, isPlayoffs);
+async function getRequestedStats (firstName, lastName, baseUrl, category, isPlayoffs, season, statsObject) {
+    const $ = await getCheerioAPI(firstName, lastName, baseUrl);
+
+    if (season) return getSeasonStats(statsObject, $, category, isPlayoffs, season);
+    else return getCareerStats(statsObject, $, category, isPlayoffs);
 }
 
-module.exports = { getUrl, getHtml, getRequestedStats };
+module.exports = getRequestedStats;
