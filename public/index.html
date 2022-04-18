@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Basketball Reference Scraper</title>
+        <link rel="stylesheet" href="style.css"/>
+    </head>
+    <body>
+        <h1>Basketball Reference Scraper</h1>
+        <div id="requestUrl"></div>
+        <form>
+            <input id="firstName" placeholder="First Name">
+            <input id="lastName" placeholder="Last Name">
+            <input id="season" placeholder="Season">
+            <input id="playoffs" type="checkbox">Playoffs
+            <select id="category">
+                <option value="" selected disabled>Category</option>
+                <option value="per_game">Per Game</option>
+                <option value="advanced">Advanced</option>
+            </select>
+            <div id="per_game"></div>
+            <div id="advanced"></div>
+        </form>
+        <script src="script.js"></script>
+    </body>
+</html>
