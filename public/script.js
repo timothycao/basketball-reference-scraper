@@ -1,3 +1,5 @@
+const baseUrl = window.location.href + 'players/?';
+
 const statsRef = {
     'per_game': [
         { value: 'age', text: 'Age' },
@@ -61,7 +63,12 @@ const statsRef = {
 };
 
 function load () {
+    loadRequestUrl();
     loadStats();
+}
+
+function loadRequestUrl () {
+    document.getElementById('requestUrl').innerHTML = baseUrl;
 }
 
 function loadStats () {
@@ -72,7 +79,7 @@ function loadStats () {
 
 function addCheckbox (id, value, text) {
     const element = document.getElementById(id);
-    element.innerHTML += `<input id=${value} type="checkbox">${text}`;
+    element.innerHTML += `<input id=${value} class="form" type="checkbox">${text}`;
 }
 
 function toggleStats (category) {
@@ -84,5 +91,26 @@ function toggleStats (category) {
     const otherCategoryStats = document.getElementById(otherCategory).children;
     for (let i = 0; i < otherCategoryStats.length; i++) {
         otherCategoryStats[i].checked = false;
+    }
+}
+
+function createQueryParam (id) {
+    const element = document.getElementById(id);
+
+    if (id === 'firstName') return element.value ? `${id}=${element.value}` : '';
+    if (element.type === 'text') return element.value ? `&${id}=${element.value}` : '';
+    if (element.type === 'checkbox') return element.checked ? `&${id}=${element.checked}` : '';
+    if (element.type === 'select-one') return element.options[category.selectedIndex].value ? `&${id}=${element.options[category.selectedIndex].value}` : '';
+}
+
+function updateRequestUrl () {
+    const requestUrl = document.getElementById('requestUrl');
+    requestUrl.innerHTML = baseUrl;
+
+    const formElements = document.querySelectorAll('.form');
+
+    for (let i = 0; i < formElements.length; i++) {
+        const element = formElements[i];
+        requestUrl.innerHTML += createQueryParam(element.id);
     }
 }
