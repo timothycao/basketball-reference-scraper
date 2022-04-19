@@ -1,12 +1,14 @@
 const baseUrl = window.location.href + 'players/?';
 
 const statsRef = {
-    'per_game': [
+    'general': [
         { value: 'age', text: 'Age' },
         { value: 'team_id', text: 'Tm' },
         { value: 'lg_id', text: 'Lg' },
         { value: 'pos', text: 'Pos' },
-        { value: 'g', text: 'G' },
+        { value: 'g', text: 'G' }
+    ],
+    'per_game': [
         { value: 'gs', text: 'GS' },
         { value: 'mp_per_g', text: 'MP' },
         { value: 'fg_per_g', text: 'FG' },
@@ -33,11 +35,6 @@ const statsRef = {
         { value: 'pts_per_g', text: 'PTS' }
     ],
     'advanced': [
-        { value: 'age', text: 'Age' },
-        { value: 'team_id', text: 'Tm' },
-        { value: 'lg_id', text: 'Lg' },
-        { value: 'pos', text: 'Pos' },
-        { value: 'g', text: 'G' },
         { value: 'mp', text: 'MP' },
         { value: 'per', text: 'PER' },
         { value: 'ts_pct', text: 'TS%' },
@@ -83,6 +80,7 @@ function addCheckbox (id, value, text) {
 }
 
 function toggleStats (category) {
+    document.getElementById('general').style.display = 'block';
     document.getElementById(category).style.display = 'block';
 
     const otherCategory = category === 'per_game' ? 'advanced' : 'per_game';
