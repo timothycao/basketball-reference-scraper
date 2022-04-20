@@ -6,20 +6,24 @@
     </head>
     <body onload="load()">
         <h1>Basketball Reference Scraper</h1>
-        <div id="requestUrl"></div>
+        <div id="requestUrl" class="container"></div>
         <form onchange="updateRequestUrl()">
-            <input id="firstName" class="form" placeholder="First Name">
-            <input id="lastName" class="form" placeholder="Last Name">
-            <input id="season" class="form" placeholder="Season">
-            <input id="playoffs" class="form" type="checkbox">Playoffs
-            <select id="category" class="form" onchange="toggleStats(this.value)">
-                <option value="" selected disabled>Category</option>
-                <option value="per_game">Per Game</option>
-                <option value="advanced">Advanced</option>
-            </select>
-            <div id="general" style="display:none"></div>
-            <div id="per_game" style="display:none"></div>
-            <div id="advanced" style="display:none"></div>
+            <div id="form" class="container">
+                <input id="firstName" class="form" placeholder="First Name">
+                <input id="lastName" class="form" placeholder="Last Name">
+                <input id="season" class="form" placeholder="Season">
+                <div>
+                    <input id="playoffs" class="form" type="checkbox">Playoffs
+                </div>
+                <select id="category" class="form" onchange="toggleStats(this.value)">
+                    <option value="" selected disabled>Category</option>
+                    <option value="per_game">Per Game</option>
+                    <option value="advanced">Advanced</option>
+                </select>
+            </div>
+            <div id="general" class="container"></div>
+            <div id="per_game" class="container"></div>
+            <div id="advanced" class="container"></div>
         </form>
         <script src="script.js"></script>
     </body>
