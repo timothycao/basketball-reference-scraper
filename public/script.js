@@ -76,19 +76,19 @@ function loadStats () {
 
 function addCheckbox (id, value, text) {
     const element = document.getElementById(id);
-    element.innerHTML += `<input id=${value} class="form" type="checkbox">${text}`;
+    element.innerHTML += `<div class="checkbox"><input id=${value} class="form" type="checkbox">${text}</div>`;
 }
 
 function toggleStats (category) {
-    document.getElementById('general').style.display = 'block';
-    document.getElementById(category).style.display = 'block';
+    document.getElementById('general').style.display = 'flex';
+    document.getElementById(category).style.display = 'flex';
 
     const otherCategory = category === 'per_game' ? 'advanced' : 'per_game';
     document.getElementById(otherCategory).style.display = 'none';
 
     const otherCategoryStats = document.getElementById(otherCategory).children;
     for (let i = 0; i < otherCategoryStats.length; i++) {
-        otherCategoryStats[i].checked = false;
+        otherCategoryStats[i].firstChild.checked = false;
     }
 }
 
